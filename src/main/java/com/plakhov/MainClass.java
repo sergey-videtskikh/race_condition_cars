@@ -9,8 +9,8 @@ public class MainClass {
     public static final int CARS_COUNT = 4;
 
     public static void main(String[] args) throws InterruptedException {
-        CyclicBarrier barrierStart = new CyclicBarrier(CARS_COUNT, () -> System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Гонка началась!!!"));
-        CountDownLatch countDownLatchFinish = new CountDownLatch(CARS_COUNT);
+        CountDownLatch startSignal = new CountDownLatch(CARS_COUNT);
+        CountDownLatch finishSignal = new CountDownLatch(CARS_COUNT);
         Semaphore tunnelSemaphore = new Semaphore(CARS_COUNT / 2);
         AtomicReference<Car> winner = new AtomicReference<>();
 
@@ -18,14 +18,15 @@ public class MainClass {
         Race race = new Race(new Road(60), new Tunnel(tunnelSemaphore), new Road(40));
         Car[] cars = new Car[CARS_COUNT];
         for (int i = 0; i < cars.length; i++) {
-            cars[i] = new Car(barrierStart, countDownLatchFinish, winner, race, 20 + (int) (Math.random() * 10));
+            cars[i] = new Car(startSignal, finishSignal, winner, race, 20 + (int) (Math.random() * 10));
         }
 
         for (Car car : cars) {
             new Thread(car).start();
         }
-
-        countDownLatchFinish.await();
+        startSignal.await();
+        System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Гонка началась!!!");
+        finishSignal.await();
         System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Гонка закончилась!!!");
         System.out.println("Побдитель: " + winner.get().getName());
     }
