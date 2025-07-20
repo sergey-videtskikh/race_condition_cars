@@ -1,6 +1,5 @@
 package com.plakhov.account;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -47,7 +46,13 @@ public class AccountRunner {
     }
 
     private static void transfer(AccountDto from, AccountDto to, int amount) {
-        from.withdraw(amount);
-        to.deposit(amount);
+        Object monitor1 = from.getId() < to.getId() ? from : to;
+        Object monitor2 = from.getId() >= to.getId() ? from : to;
+        synchronized (monitor1) {
+            synchronized (monitor2) {
+                from.withdraw(amount);
+                to.deposit(amount);
+            }
+        }
     }
 }
