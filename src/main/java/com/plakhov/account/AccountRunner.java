@@ -2,6 +2,8 @@ package com.plakhov.account;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.Stream;
 
 public class AccountRunner {
@@ -47,7 +49,21 @@ public class AccountRunner {
     }
 
     private static void transfer(AccountDto from, AccountDto to, int amount) {
-        from.withdraw(amount);
-        to.deposit(amount);
+        Lock lock1 = from.getId() < to.getId() ? from.getLock() : to.getLock();
+        Lock lock2 = from.getId() > to.getId() ? from.getLock() : to.getLock();
+
+        try {
+            lock1.tryLock(30, TimeUnit.SECONDS);
+            lock2.tryLock(30, TimeUnit.SECONDS);
+
+            from.withdraw(amount);
+            to.deposit(amount);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            lock1.unlock();
+            lock2.unlock();
+        }
+
     }
 }
