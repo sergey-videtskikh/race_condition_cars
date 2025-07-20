@@ -1,7 +1,7 @@
 package com.plakhov.account;
 
 public class AccountDto {
-    private long id;
+    private final long id;
     private int balance;
 
     public AccountDto(long id, int balance) {
@@ -15,6 +15,10 @@ public class AccountDto {
 
     public void deposit(int amount) {
         balance += amount;
+    }
+
+    public long getId() {
+        return id;
     }
 
     @Override
